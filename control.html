@@ -1,104 +1,209 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة التحكم — استبيان آراء الموظفين</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المدير</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --text-dark: #333;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h2 { border-bottom: 2px solid var(--primary); padding-bottom: 10px; color: var(--primary); }
+        .section { margin-bottom: 40px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--danger); }
+        .btn-primary { background: var(--primary); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: right; }
+        th { background: var(--primary); color: white; }
+        svg { width: 18px; height: 18px; }
+    </style>
 </head>
-<body dir="rtl">
+<body>
+    <div id="svg-container"></div>
 
-<header>
-  <div class="header-brand">
-    <img src="logo.svg" alt="شعار الاستبيان">
-    <h1>لوحة التحكم</h1>
-  </div>
-  <button class="icon-btn" id="openSettings">⚙️ الإعدادات</button>
-</header>
+    <div class="container">
+        <!-- قسم الإعدادات: إدارة الفروع -->
+        <div class="section">
+            <h2>إعدادات الفروع</h2>
+            <div class="form-group">
+                <label>إضافة فرع جديد:</label>
+                <input type="text" id="newBranchInput" placeholder="مثال: الرياض بارك، النخيل مول...">
+            </div>
+            <button class="btn btn-success" onclick="addBranch()">
+                <svg><use href="#icon-add"></use></svg> إضافة الفرع
+            </button>
+            <ul id="branchesList" style="margin-top: 15px; line-height: 1.8;"></ul>
+        </div>
 
-<main>
-  <div class="glass-card">
-    <h2>إضافة موظفة</h2>
-    <div class="form-grid">
-      <input id="newName" placeholder="اسم الموظفة">
-      <select id="newBranch">
-        <option value="" disabled selected>اختاري الفرع</option>
-      </select>
-      <input id="newTitle" placeholder="المسمى الوظيفي">
-      <button class="btn" id="addEmpBtn">إضافة</button>
-    </div>
-  </div>
+        <!-- قسم إدارة الأسئلة -->
+        <div class="section">
+            <h2>إدارة الأسئلة</h2>
+            <div class="form-group">
+                <label>نص السؤال:</label>
+                <input type="text" id="questionInput" placeholder="اكتب السؤال هنا...">
+                <input type="hidden" id="editQuestionId">
+            </div>
+            <button class="btn btn-success" id="saveQuestionBtn" onclick="saveQuestion()">
+                <svg><use href="#icon-add"></use></svg> حفظ السؤال
+            </button>
+            <table id="questionsTable">
+                <thead><tr><th>السؤال</th><th>إجراءات</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
 
-  <div class="glass-card">
-    <h2>الموظفات حسب الفرع</h2>
-    <div id="branchesWrap"><div class="empty-hint">لا يوجد موظفات بعد.</div></div>
-  </div>
-</main>
-
-<div class="overlay" id="empOverlay">
-  <div class="panel">
-    <div class="panel-head">
-      <div>
-        <div class="panel-title" id="pName">—</div>
-        <div class="panel-sub" id="pMeta">—</div>
-      </div>
-      <button class="close-x" id="closePanel">✕</button>
-    </div>
-
-    <div class="link-box">
-      <input id="linkInput" readonly>
-      <button class="btn small ghost" id="copyLinkBtn">نسخ الرابط</button>
-    </div>
-    <div id="copiedMsg" class="link-copied" style="display:none;margin-top:-12px;margin-bottom:14px;">تم نسخ الرابط ✓</div>
-
-    <div id="answersWrap"></div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="settingsOverlay">
-  <div class="modal">
-    <h2>الإعدادات</h2>
-
-    <div class="settings-tabs">
-      <button class="settings-tab-btn active" data-tab="tags">الأوسمة</button>
-      <button class="settings-tab-btn" data-tab="questions">الأسئلة</button>
-      <button class="settings-tab-btn" data-tab="branches">الفروع</button>
+        <!-- قسم إضافة موظفة -->
+        <div class="section">
+            <h2>إضافة موظفة</h2>
+            <div class="form-group">
+                <label>اسم الموظفة:</label>
+                <input type="text" id="empName" placeholder="اسم الموظفة">
+            </div>
+            <div class="form-group">
+                <label>تحديد الفرع:</label>
+                <select id="empBranchSelect">
+                    <!-- يتم تعبئة الفروع هنا -->
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="addEmployee()">
+                <svg><use href="#icon-add"></use></svg> إضافة موظفة
+            </button>
+            <table id="employeesTable">
+                <thead><tr><th>الاسم</th><th>الفرع</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- تبويب: الأوسمة -->
-    <div class="settings-pane active" id="pane-tags">
-      <div id="tagList"></div>
-      <div style="margin-top:14px;">
-        <input id="newTagName" placeholder="اسم الوسم الجديد" style="margin-bottom:10px;">
-        <div class="swatch-picker" id="swatchPicker"></div>
-        <button class="btn" id="addTagBtn" style="width:100%;">إضافة وسم</button>
-      </div>
-    </div>
+    <script>
+        // تحميل الأيقونات
+        fetch('icons.svg').then(res => res.text()).then(data => document.getElementById('svg-container').innerHTML = data);
 
-    <!-- تبويب: الأسئلة -->
-    <div class="settings-pane" id="pane-questions">
-      <div id="questionList"></div>
-      <div class="add-row">
-        <input id="newQuestionText" placeholder="نص السؤال الجديد">
-        <button class="btn small" id="addQuestionBtn">إضافة</button>
-      </div>
-    </div>
+        // البيانات الأولية
+        let branches = JSON.parse(localStorage.getItem('branches')) || ['النخيل مول', 'الرياض بارك', 'غرناطة مول', 'بانوراما مول', 'حياة مول', 'الفيصلية مول'];
+        let questions = JSON.parse(localStorage.getItem('questions')) || [{id: Date.now(), text: 'كيف تقيم مستوى الدعم الفني؟'}];
+        let employees = JSON.parse(localStorage.getItem('employees')) || [];
 
-    <!-- تبويب: الفروع -->
-    <div class="settings-pane" id="pane-branches">
-      <div id="branchList"></div>
-      <div class="add-row">
-        <input id="newBranchName" placeholder="اسم الفرع الجديد">
-        <button class="btn small" id="addBranchBtn">إضافة</button>
-      </div>
-    </div>
+        function init() {
+            renderBranches();
+            renderQuestions();
+            renderEmployees();
+            updateBranchSelect();
+        }
 
-    <div style="text-align:left;margin-top:16px;">
-      <button class="btn ghost small" id="closeSettings">إغلاق</button>
-    </div>
-  </div>
-</div>
+        // إدارة الفروع
+        function addBranch() {
+            const val = document.getElementById('newBranchInput').value.trim();
+            if (val && !branches.includes(val)) {
+                branches.push(val);
+                localStorage.setItem('branches', JSON.stringify(branches));
+                document.getElementById('newBranchInput').value = '';
+                init();
+            }
+        }
 
-<script type="module" src="control.js"></script>
+        function renderBranches() {
+            const list = document.getElementById('branchesList');
+            list.innerHTML = '';
+            branches.forEach((b, index) => {
+                list.innerHTML += `<li>${b} <button style="color:red; background:none; border:none; cursor:pointer;" onclick="deleteBranch(${index})">حذف</button></li>`;
+            });
+        }
+
+        function deleteBranch(index) {
+            branches.splice(index, 1);
+            localStorage.setItem('branches', JSON.stringify(branches));
+            init();
+        }
+
+        function updateBranchSelect() {
+            const select = document.getElementById('empBranchSelect');
+            select.innerHTML = branches.map(b => `<option value="${b}">${b}</option>`).join('');
+        }
+
+        // إدارة الأسئلة
+        function saveQuestion() {
+            const text = document.getElementById('questionInput').value.trim();
+            const editId = document.getElementById('editQuestionId').value;
+            
+            if (!text) return;
+
+            if (editId) {
+                const qIndex = questions.findIndex(q => q.id == editId);
+                if (qIndex > -1) questions[qIndex].text = text;
+                document.getElementById('editQuestionId').value = '';
+                document.getElementById('saveQuestionBtn').innerHTML = `<svg><use href="#icon-add"></use></svg> حفظ السؤال`;
+            } else {
+                questions.push({ id: Date.now(), text: text });
+            }
+
+            localStorage.setItem('questions', JSON.stringify(questions));
+            document.getElementById('questionInput').value = '';
+            renderQuestions();
+        }
+
+        function editQuestion(id) {
+            const q = questions.find(q => q.id == id);
+            if (q) {
+                document.getElementById('questionInput').value = q.text;
+                document.getElementById('editQuestionId').value = q.id;
+                document.getElementById('saveQuestionBtn').innerHTML = `<svg><use href="#icon-edit"></use></svg> تعديل السؤال`;
+            }
+        }
+
+        function deleteQuestion(id) {
+            questions = questions.filter(q => q.id != id);
+            localStorage.setItem('questions', JSON.stringify(questions));
+            renderQuestions();
+        }
+
+        function renderQuestions() {
+            const tbody = document.querySelector('#questionsTable tbody');
+            tbody.innerHTML = questions.map(q => `
+                <tr>
+                    <td>${q.text}</td>
+                    <td>
+                        <button class="btn btn-primary" onclick="editQuestion(${q.id})"><svg><use href="#icon-edit"></use></svg></button>
+                        <button class="btn btn-danger" onclick="deleteQuestion(${q.id})"><svg><use href="#icon-delete"></use></svg></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // إدارة الموظفات
+        function addEmployee() {
+            const name = document.getElementById('empName').value.trim();
+            const branch = document.getElementById('empBranchSelect').value;
+            if (name && branch) {
+                employees.push({ name, branch });
+                localStorage.setItem('employees', JSON.stringify(employees));
+                document.getElementById('empName').value = '';
+                renderEmployees();
+            }
+        }
+
+        function renderEmployees() {
+            const tbody = document.querySelector('#employeesTable tbody');
+            tbody.innerHTML = employees.map(emp => `
+                <tr>
+                    <td>${emp.name}</td>
+                    <td>${emp.branch}</td>
+                </tr>
+            `).join('');
+        }
+
+        init();
+    </script>
 </body>
 </html>
