@@ -1,137 +1,44 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تحليلات النظام والأوسمة</title>
-    <style>
-        :root {
-            --bg: #ecf0f1;
-            --card-bg: #fff;
-            --text: #2c3e50;
-        }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
-        .header { text-align: center; margin-bottom: 30px; color: var(--text); }
-        
-        .badges-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; }
-        .badge-btn {
-            padding: 12px 25px; border: none; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; display: flex; align-items: center; gap: 8px; transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .badge-btn:hover { transform: translateY(-3px); }
-        .badge-all { background-color: #34495e; }
-        .badge-suggestion { background-color: #2980b9; }
-        .badge-complaint { background-color: #c0392b; }
-        .badge-request { background-color: #27ae60; }
-        .badge-praise { background-color: #8e44ad; }
-
-        .results-container { max-width: 1000px; margin: 0 auto; }
-        .response-card {
-            background: var(--card-bg); padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-right: 5px solid #ccc;
-        }
-        .response-header {
-            display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;
-        }
-        .emp-info { font-weight: bold; font-size: 16px; color: #2c3e50; }
-        .meta-info { color: #7f8c8d; font-size: 14px; }
-        .tag-label { padding: 4px 10px; border-radius: 15px; color: white; font-size: 12px; font-weight: bold; }
-        
-        .answer-block { margin-bottom: 15px; }
-        .q-title { font-weight: bold; color: #34495e; margin-bottom: 5px; }
-        .a-text { color: #555; background: #f9f9f9; padding: 10px; border-radius: 5px; }
-        svg { width: 18px; height: 18px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>التحليلات — استبيان آراء الموظفين</title>
+<link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div id="svg-container"></div>
-
-    <div class="header">
-        <h1>تحليلات الاستبيانات والأوسمة</h1>
+<body dir="rtl">
+<header>
+  <img src="logo.svg" alt="شعار الاستبيان">
+  <h1>التحليلات</h1>
+</header>
+<main>
+  <div class="hero">
+    <div class="hero-block">
+      <div class="label">أكثر وسم متكرر لدى الموظفات</div>
+      <div class="value" id="topTagOverall">—</div>
     </div>
-
-    <!-- أزرار الأوسمة -->
-    <div class="badges-container">
-        <button class="badge-btn badge-all" onclick="filterResponses('الكل')">الكل</button>
-        <button class="badge-btn badge-suggestion" onclick="filterResponses('اقتراح')">
-            <svg><use href="#icon-badge"></use></svg> اقتراحات
-        </button>
-        <button class="badge-btn badge-complaint" onclick="filterResponses('شكوى')">
-            <svg><use href="#icon-badge"></use></svg> شكاوى
-        </button>
-        <button class="badge-btn badge-request" onclick="filterResponses('طلب')">
-            <svg><use href="#icon-badge"></use></svg> طلبات احتياج
-        </button>
-        <button class="badge-btn badge-praise" onclick="filterResponses('إشادة')">
-            <svg><use href="#icon-badge"></use></svg> إشادات
-        </button>
+    <div class="hero-block">
+      <div class="label">إجمالي الردود</div>
+      <div class="value" id="totalResponses">0</div>
     </div>
-
-    <div class="results-container" id="resultsContainer">
-        <!-- سيتم عرض الردود هنا -->
+    <div class="hero-block">
+      <div class="label">عدد الموظفات</div>
+      <div class="value" id="totalEmployees">0</div>
     </div>
+  </div>
 
-    <script>
-        fetch('icons.svg').then(res => res.text()).then(data => document.getElementById('svg-container').innerHTML = data);
+  <div class="glass-card">
+    <h2>المشاكل حسب الفرع (حسب الأوسمة)</h2>
+    <div id="branchesWrap" class="branch-grid"><div class="empty-hint">لا توجد بيانات كافية بعد.</div></div>
+  </div>
 
-        const responses = JSON.parse(localStorage.getItem('responses')) || [];
+  <div class="glass-card">
+    <h2>التعليقات حسب الوسم</h2>
+    <div class="tag-filter-row" id="tagFilterRow"><div class="empty-hint">لا يوجد أوسمة بعد.</div></div>
+    <div id="commentsWrap" style="margin-top:16px;"></div>
+  </div>
+</main>
 
-        function getBadgeColor(badge) {
-            switch(badge) {
-                case 'اقتراح': return '#2980b9';
-                case 'شكوى': return '#c0392b';
-                case 'طلب': return '#27ae60';
-                case 'إشادة': return '#8e44ad';
-                default: return '#34495e';
-            }
-        }
-
-        function filterResponses(selectedBadge) {
-            const container = document.getElementById('resultsContainer');
-            container.innerHTML = '';
-
-            const filtered = selectedBadge === 'الكل' 
-                ? responses 
-                : responses.filter(r => r.badge === selectedBadge);
-
-            if (filtered.length === 0) {
-                container.innerHTML = '<h3 style="text-align:center; color:#7f8c8d;">لا توجد سجلات مطابقة لهذا الوسم.</h3>';
-                return;
-            }
-
-            // عرض الردود الأحدث أولاً
-            [...filtered].reverse().forEach(res => {
-                const color = getBadgeColor(res.badge);
-                let answersHTML = '';
-                
-                for (const [question, answer] of Object.entries(res.answers)) {
-                    if(answer.trim() !== "") {
-                        answersHTML += `
-                            <div class="answer-block">
-                                <div class="q-title">${question}</div>
-                                <div class="a-text">${answer}</div>
-                            </div>
-                        `;
-                    }
-                }
-
-                container.innerHTML += `
-                    <div class="response-card" style="border-right-color: ${color}">
-                        <div class="response-header">
-                            <div class="emp-info">الموظفة: ${res.empName} | الفرع: ${res.branch}</div>
-                            <div class="meta-info">
-                                <span class="tag-label" style="background-color: ${color}">${res.badge}</span>
-                                &nbsp; ${res.date}
-                            </div>
-                        </div>
-                        <div class="answers-container">
-                            ${answersHTML || '<div class="a-text">لم يتم إدخال تفاصيل.</div>'}
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        // عرض الكل عند التحميل
-        filterResponses('الكل');
-    </script>
+<script type="module" src="analytics.js"></script>
 </body>
 </html>

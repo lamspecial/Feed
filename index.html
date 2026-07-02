@@ -1,72 +1,18 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة النظام</title>
-    <style>
-        :root {
-            --primary-color: #2c3e50;
-            --bg-color: #f4f7f6;
-            --btn-owner: #8e44ad;
-            --btn-management: #2980b9;
-            --btn-branch: #27ae60;
-            --btn-cs: #f39c12;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-container {
-            background: #fff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 100%;
-            max-width: 400px;
-        }
-        h1 { color: var(--primary-color); margin-bottom: 30px; }
-        .login-btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            text-decoration: none;
-            transition: opacity 0.3s;
-        }
-        .login-btn:hover { opacity: 0.9; }
-        .btn-owner { background-color: var(--btn-owner); }
-        .btn-management { background-color: var(--btn-management); }
-        .btn-branch { background-color: var(--btn-branch); }
-        .btn-cs { background-color: var(--btn-cs); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>استبيان آراء الموظفين</title>
+<link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="login-container">
-        <h1>بوابة الدخول للنظام</h1>
-        <a href="control.html" class="login-btn btn-owner">دخول المالك</a>
-        <a href="control.html" class="login-btn btn-management">دخول الإدارة</a>
-        <a href="any.html" class="login-btn btn-branch">إدارة الفروع (التحليلات)</a>
-        <a href="survey.html" class="login-btn btn-cs">خدمة العملاء (الاستبيان)</a>
+<body class="page-index">
+  <div class="glass-card landing-card">
+    <div class="mark">
+      <img src="logo.svg" alt="شعار الاستبيان">
     </div>
-    <!-- تحميل الأيقونات في الخلفية -->
-    <div id="svg-container"></div>
-    <script>
-        fetch('icons.svg')
-            .then(response => response.text())
-            .then(data => document.getElementById('svg-container').innerHTML = data);
-    </script>
+    <div class="name">استبيان آراء الموظفين</div>
+    <div class="sub">صوتكِ يصنع بيئة عمل أفضل</div>
+  </div>
 </body>
 </html>
