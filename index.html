@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>استبيان آراء الموظفين</title>
+<style>
+  :root{
+    --blue-accent:#2f6fed;
+    --blue-border:#d7e4fb;
+    --blue-light:#eef4fe;
+    --bg:#f7f9fc;
+    --text:#1c2530;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Tahoma,Arial,sans-serif;
+    background:var(--bg);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text);
+  }
+  .logo-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:22px;
+    animation:fadeIn .8s ease;
+  }
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .mark{
+    width:104px;
+    height:104px;
+    border-radius:28px;
+    background:linear-gradient(145deg,#ffffff,#eef4fe);
+    border:1px solid var(--blue-border);
+    box-shadow:0 12px 30px rgba(47,111,237,0.14), inset 0 1px 0 rgba(255,255,255,0.8);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .mark svg{width:52px;height:52px;}
+  .name{
+    font-size:22px;
+    font-weight:600;
+    letter-spacing:.2px;
+    color:var(--text);
+  }
+  .sub{
+    font-size:13px;
+    color:#8b97a6;
+    letter-spacing:.3px;
+  }
+</style>
+</head>
+<body>
+  <div class="logo-wrap">
+    <div class="mark">
+      <svg viewBox="0 0 48 48" fill="none">
+        <path d="M9 14C9 11.2386 11.2386 9 14 9H34C36.7614 9 39 11.2386 39 14V27C39 29.7614 36.7614 32 34 32H21L13 39V32H14C11.2386 32 9 29.7614 9 27V14Z"
+          stroke="#2f6fed" stroke-width="2.4" stroke-linejoin="round"/>
+        <circle cx="18" cy="20.5" r="1.8" fill="#2f6fed"/>
+        <circle cx="24" cy="20.5" r="1.8" fill="#2f6fed"/>
+        <circle cx="30" cy="20.5" r="1.8" fill="#2f6fed"/>
+      </svg>
+    </div>
+    <div class="name">استبيان آراء الموظفين</div>
+    <div class="sub">صوتكِ يصنع بيئة عمل أفضل</div>
+  </div>
+</body>
+</html>

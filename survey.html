@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>استبيان آراء الموظفين</title>
+<style>
+  :root{
+    --blue-accent:#2f6fed;
+    --blue-accent-dark:#1f56c9;
+    --blue-border:#d7e4fb;
+    --blue-light:#eef4fe;
+    --bg:#f7f9fc;
+    --text:#1c2530;
+    --muted:#7c8794;
+    --radius:18px;
+    --shadow:0 10px 30px rgba(31,71,153,0.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Tahoma,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;
+  }
+  .card{
+    width:min(560px,100%);
+    background:#fff;
+    border:1px solid var(--blue-border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:32px 30px;
+  }
+  .top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
+  .emp-name{font-size:13.5px;color:var(--muted);}
+  .progress-track{
+    height:6px;background:var(--blue-light);border-radius:10px;overflow:hidden;margin-bottom:26px;
+  }
+  .progress-fill{height:100%;background:var(--blue-accent);border-radius:10px;transition:width .3s ease;}
+  .step-label{font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;}
+  .question{font-size:18px;font-weight:700;line-height:1.6;margin-bottom:18px;}
+  textarea{
+    width:100%;min-height:170px;resize:vertical;
+    border:1px solid var(--blue-border);border-radius:14px;
+    padding:14px 16px;font-size:14.5px;line-height:1.8;
+    font-family:inherit;color:var(--text);background:#fbfcfe;outline:none;
+  }
+  textarea:focus{border-color:var(--blue-accent);background:#fff;box-shadow:0 0 0 3px rgba(47,111,237,0.12);}
+  .btn-row{display:flex;justify-content:space-between;align-items:center;margin-top:22px;}
+  .btn{
+    border:none;border-radius:12px;padding:12px 26px;font-size:14.5px;font-weight:700;cursor:pointer;
+  }
+  .btn-primary{background:var(--blue-accent);color:#fff;}
+  .btn-primary:hover{background:var(--blue-accent-dark);}
+  .btn-primary:disabled{background:#c9d6ee;cursor:not-allowed;}
+  .btn-ghost{background:var(--blue-light);color:var(--blue-accent-dark);border:1px solid var(--blue-border);}
+  .btn-ghost:hover{background:#e3ecfc;}
+  .btn-ghost:disabled{opacity:.4;cursor:not-allowed;}
+  .center-state{text-align:center;padding:40px 10px;}
+  .center-state .icon{font-size:44px;margin-bottom:14px;}
+  .center-state h2{font-size:19px;margin-bottom:8px;}
+  .center-state p{color:var(--muted);font-size:13.5px;line-height:1.8;}
+  .saved-hint{font-size:11.5px;color:#1f9d55;font-weight:600;height:16px;text-align:center;margin-top:10px;}
+</style>
+</head>
+<body dir="rtl">
+  <div class="card" id="card">
+    <div class="center-state"><p>...جاري التحميل</p></div>
+  </div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, doc, getDoc,
+  query, where, orderBy, limit, getDocs, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD6RHtfm6OFMF2DLnICNRdPdzZbHtIDGW8",
+  authDomain: "ali2-6ae8d.firebaseapp.com",
+  projectId: "ali2-6ae8d",
+  storageBucket: "ali2-6ae8d.firebasestorage.app",
+  messagingSenderId: "336998535201",
+  appId: "1:336998535201:web:6155c74c7357f743531360"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const QUESTIONS = [
+  "ما هي أكثر الجوانب التي تشعرين بالرضا عنها في بيئة العمل؟",
+  "هل تواجهين أي تحديات أو صعوبات في عملك؟ صفيها بالتفصيل.",
+  "ما هو تقييمك للتواصل مع الإدارة والمشرفين؟",
+  "هل لديك مقترحات لتحسين بيئة العمل أو الإجراءات؟",
+  "أي ملاحظات إضافية ترغبين بمشاركتها؟"
+];
+
+const params = new URLSearchParams(window.location.search);
+const empId = params.get('emp');
+const card = document.getElementById('card');
+
+let step = 0;
+let employee = null;
+
+init();
+
+async function init(){
+  if(!empId){ renderError('الرابط غير صالح.'); return; }
+  try{
+    const empSnap = await getDoc(doc(db,'employees',empId));
+    if(!empSnap.exists()){ renderError('لم يتم العثور على بيانات الموظفة.'); return; }
+    employee = empSnap.data();
+    renderStep();
+  }catch(e){
+    renderError('حدث خطأ أثناء تحميل الاستبيان.');
+  }
+}
+
+function renderError(msg){
+  card.innerHTML = `<div class="center-state"><div class="icon">⚠️</div><h2>تعذر فتح الاستبيان</h2><p>${escapeHtml(msg)}</p></div>`;
+}
+
+async function fetchLastAnswer(qIndex){
+  const q = query(
+    collection(db,'responses'),
+    where('employeeId','==',empId),
+    where('questionIndex','==',qIndex),
+    orderBy('createdAt','desc'),
+    limit(1)
+  );
+  const snap = await getDocs(q);
+  if(snap.empty) return '';
+  return snap.docs[0].data().answerText || '';
+}
+
+async function renderStep(){
+  if(step >= QUESTIONS.length){ renderDone(); return; }
+
+  const prevText = await fetchLastAnswer(step);
+  const pct = Math.round(((step)/QUESTIONS.length)*100);
+
+  card.innerHTML = `
+    <div class="top-row">
+      <span class="emp-name">${escapeHtml(employee.name)} · ${escapeHtml(employee.branch)}</span>
+      <span class="emp-name">${step+1} / ${QUESTIONS.length}</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="step-label">السؤال ${step+1}</div>
+    <div class="question">${escapeHtml(QUESTIONS[step])}</div>
+    <textarea id="answerBox" placeholder="اكتبي إجابتك هنا...">${escapeHtml(prevText)}</textarea>
+    <div class="saved-hint" id="savedHint"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="backBtn" ${step===0?'disabled':''}>السابق</button>
+      <button class="btn btn-primary" id="nextBtn">${step===QUESTIONS.length-1?'إنهاء الاستبيان':'استمرار'}</button>
+    </div>
+  `;
+
+  document.getElementById('backBtn').addEventListener('click', ()=>{
+    step = Math.max(0, step-1);
+    renderStep();
+  });
+
+  document.getElementById('nextBtn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('nextBtn');
+    const text = document.getElementById('answerBox').value.trim();
+    if(!text){ alert('يرجى كتابة إجابة قبل الاستمرار.'); return; }
+    btn.disabled = true;
+    btn.textContent = 'جاري الحفظ...';
+    try{
+      await addDoc(collection(db,'responses'), {
+        employeeId: empId,
+        questionIndex: step,
+        questionText: QUESTIONS[step],
+        answerText: text,
+        tags: [],
+        createdAt: serverTimestamp()
+      });
+      step += 1;
+      renderStep();
+    }catch(e){
+      alert('حدث خطأ أثناء الحفظ، حاولي مرة أخرى.');
+      btn.disabled = false;
+      btn.textContent = step===QUESTIONS.length-1?'إنهاء الاستبيان':'استمرار';
+    }
+  });
+}
+
+function renderDone(){
+  card.innerHTML = `
+    <div class="center-state">
+      <div class="icon">✅</div>
+      <h2>شكرًا لكِ</h2>
+      <p>تم إرسال إجاباتك بنجاح. رأيك يساهم في تحسين بيئة العمل.</p>
+    </div>`;
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+</script>
+</body>
+</html>

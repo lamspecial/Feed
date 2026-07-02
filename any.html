@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>التحليلات — استبيان آراء الموظفين</title>
+<style>
+  :root{
+    --blue-accent:#2f6fed;
+    --blue-accent-dark:#1f56c9;
+    --blue-border:#d7e4fb;
+    --blue-light:#eef4fe;
+    --bg:#f7f9fc;
+    --text:#1c2530;
+    --muted:#7c8794;
+    --radius:16px;
+    --shadow:0 8px 24px rgba(31,71,153,0.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Tahoma,Arial,sans-serif;
+    background:var(--bg);color:var(--text);min-height:100vh;
+  }
+  header{
+    background:#fff;border-bottom:1px solid var(--blue-border);
+    padding:16px 28px;position:sticky;top:0;z-index:10;
+  }
+  header h1{font-size:18px;font-weight:600;}
+  main{max-width:1100px;margin:0 auto;padding:26px 20px 80px;}
+
+  .hero{
+    background:linear-gradient(135deg,#2f6fed,#5c8cf5);
+    border-radius:var(--radius);padding:26px 28px;color:#fff;
+    box-shadow:var(--shadow);margin-bottom:24px;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
+  }
+  .hero-block .label{font-size:12px;opacity:.85;margin-bottom:6px;}
+  .hero-block .value{font-size:24px;font-weight:800;}
+  .hero-block .value small{font-size:13px;font-weight:600;opacity:.85;}
+
+  .card{
+    background:#fff;border:1px solid var(--blue-border);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:22px;margin-bottom:20px;
+  }
+  .card h2{font-size:15px;font-weight:700;margin-bottom:16px;}
+  .branch-name{font-size:14.5px;font-weight:700;color:var(--blue-accent-dark);margin-bottom:12px;}
+  .bar-row{margin-bottom:12px;}
+  .bar-row .top{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px;}
+  .bar-row .tag-name{font-weight:600;}
+  .bar-track{height:9px;background:var(--blue-light);border-radius:10px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:10px;}
+  .empty-hint{color:var(--muted);font-size:13px;padding:6px 2px;}
+  .branch-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media (max-width:760px){.branch-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body dir="rtl">
+<header><h1>التحليلات</h1></header>
+<main>
+  <div class="hero">
+    <div class="hero-block">
+      <div class="label">أكثر وسم متكرر لدى الموظفات</div>
+      <div class="value" id="topTagOverall">—</div>
+    </div>
+    <div class="hero-block">
+      <div class="label">إجمالي الردود</div>
+      <div class="value" id="totalResponses">0</div>
+    </div>
+    <div class="hero-block">
+      <div class="label">عدد الموظفات</div>
+      <div class="value" id="totalEmployees">0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>المشاكل حسب الفرع (حسب الأوسمة)</h2>
+    <div id="branchesWrap" class="branch-grid"><div class="empty-hint">لا توجد بيانات كافية بعد.</div></div>
+  </div>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD6RHtfm6OFMF2DLnICNRdPdzZbHtIDGW8",
+  authDomain: "ali2-6ae8d.firebaseapp.com",
+  projectId: "ali2-6ae8d",
+  storageBucket: "ali2-6ae8d.firebasestorage.app",
+  messagingSenderId: "336998535201",
+  appId: "1:336998535201:web:6155c74c7357f743531360"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let employees = [];
+let tags = [];
+let responses = [];
+
+onSnapshot(collection(db,'employees'), snap=>{
+  employees = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  recompute();
+});
+onSnapshot(query(collection(db,'tags'), orderBy('createdAt','asc')), snap=>{
+  tags = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  recompute();
+});
+onSnapshot(collection(db,'responses'), snap=>{
+  responses = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  recompute();
+});
+
+function recompute(){
+  document.getElementById('totalEmployees').textContent = employees.length;
+  document.getElementById('totalResponses').textContent = responses.length;
+
+  const tagById = Object.fromEntries(tags.map(t=>[t.id,t]));
+  const empById = Object.fromEntries(employees.map(e=>[e.id,e]));
+
+  // overall tag counts
+  const overallCounts = {};
+  responses.forEach(r=>{
+    (r.tags||[]).forEach(tid=>{
+      overallCounts[tid] = (overallCounts[tid]||0)+1;
+    });
+  });
+  const topTagId = Object.keys(overallCounts).sort((a,b)=>overallCounts[b]-overallCounts[a])[0];
+  const topTagEl = document.getElementById('topTagOverall');
+  if(topTagId && tagById[topTagId]){
+    topTagEl.innerHTML = `${escapeHtml(tagById[topTagId].name)} <small>(${overallCounts[topTagId]})</small>`;
+  }else{
+    topTagEl.textContent = 'لا يوجد بعد';
+  }
+
+  // per-branch tag counts
+  const branchCounts = {};
+  responses.forEach(r=>{
+    const emp = empById[r.employeeId];
+    if(!emp) return;
+    branchCounts[emp.branch] = branchCounts[emp.branch] || {};
+    (r.tags||[]).forEach(tid=>{
+      branchCounts[emp.branch][tid] = (branchCounts[emp.branch][tid]||0)+1;
+    });
+  });
+
+  const wrap = document.getElementById('branchesWrap');
+  const branchNames = Object.keys(branchCounts).sort();
+  if(branchNames.length===0){
+    wrap.innerHTML = '<div class="empty-hint">لا توجد بيانات كافية بعد.</div>';
+    return;
+  }
+
+  wrap.innerHTML = branchNames.map(branch=>{
+    const counts = branchCounts[branch];
+    const entries = Object.keys(counts)
+      .map(tid=>({tid, count:counts[tid], tag:tagById[tid]}))
+      .filter(e=>e.tag)
+      .sort((a,b)=>b.count-a.count);
+    const max = entries.length ? entries[0].count : 1;
+    const barsHtml = entries.length ? entries.map(e=>`
+      <div class="bar-row">
+        <div class="top"><span class="tag-name">${escapeHtml(e.tag.name)}</span><span>${e.count}</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(e.count/max)*100}%;background:${e.tag.color}"></div></div>
+      </div>
+    `).join('') : '<div class="empty-hint">لا توجد أوسمة مضافة على ردود هذا الفرع بعد.</div>';
+    return `<div><div class="branch-name">${escapeHtml(branch)}</div>${barsHtml}</div>`;
+  }).join('');
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+</script>
+</body>
+</html>

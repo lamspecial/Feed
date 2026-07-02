@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة التحكم — استبيان آراء الموظفين</title>
+<style>
+  :root{
+    --blue-accent:#2f6fed;
+    --blue-accent-dark:#1f56c9;
+    --blue-border:#d7e4fb;
+    --blue-light:#eef4fe;
+    --bg:#f7f9fc;
+    --text:#1c2530;
+    --muted:#7c8794;
+    --radius:16px;
+    --shadow:0 8px 24px rgba(31,71,153,0.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Tahoma,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+  }
+  header{
+    background:#fff;
+    border-bottom:1px solid var(--blue-border);
+    padding:16px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:sticky;top:0;z-index:20;
+  }
+  header h1{font-size:18px;font-weight:600;}
+  .icon-btn{
+    background:var(--blue-light);
+    border:1px solid var(--blue-border);
+    border-radius:12px;
+    padding:9px 16px;
+    font-size:13px;
+    color:var(--blue-accent-dark);
+    cursor:pointer;
+    font-weight:600;
+    display:flex;align-items:center;gap:6px;
+  }
+  .icon-btn:hover{background:#e3ecfc;}
+  main{max-width:1100px;margin:0 auto;padding:26px 20px 80px;}
+
+  .card{
+    background:#fff;
+    border:1px solid var(--blue-border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:22px;
+    margin-bottom:22px;
+  }
+  .card h2{font-size:15px;font-weight:700;margin-bottom:16px;}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;}
+  @media (max-width:760px){.form-grid{grid-template-columns:1fr;}}
+  input,select,textarea{
+    font-family:inherit;
+    border:1px solid var(--blue-border);
+    background:#fbfcfe;
+    border-radius:10px;
+    padding:10px 13px;
+    font-size:14px;
+    color:var(--text);
+    outline:none;
+    width:100%;
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--blue-accent);background:#fff;box-shadow:0 0 0 3px rgba(47,111,237,0.12);}
+  .btn{
+    background:var(--blue-accent);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:10px 20px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .btn:hover{background:var(--blue-accent-dark);}
+  .btn.ghost{background:var(--blue-light);color:var(--blue-accent-dark);border:1px solid var(--blue-border);}
+  .btn.ghost:hover{background:#e3ecfc;}
+  .btn.danger{background:#fdeeee;color:#c0392b;border:1px solid #f7d3d3;}
+  .btn.danger:hover{background:#fbdede;}
+  .btn.small{padding:6px 12px;font-size:12.5px;border-radius:8px;}
+
+  .branch-block{margin-bottom:18px;}
+  .branch-title{
+    font-size:14px;font-weight:700;color:var(--blue-accent-dark);
+    display:flex;align-items:center;gap:8px;margin-bottom:10px;
+  }
+  .branch-title .count{
+    background:var(--blue-light);border:1px solid var(--blue-border);
+    border-radius:20px;padding:1px 10px;font-size:11.5px;color:var(--blue-accent-dark);font-weight:600;
+  }
+  .job-group{margin-bottom:10px;}
+  .job-label{font-size:12px;color:var(--muted);font-weight:600;margin:8px 0 6px;}
+  .emp-row{
+    display:flex;align-items:center;justify-content:space-between;
+    background:#fbfcfe;border:1px solid var(--blue-border);border-radius:12px;
+    padding:11px 15px;margin-bottom:8px;cursor:pointer;transition:.15s;
+  }
+  .emp-row:hover{border-color:var(--blue-accent);background:#f4f8ff;}
+  .emp-name{font-size:14px;font-weight:600;}
+  .emp-meta{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .emp-actions{display:flex;gap:8px;align-items:center;}
+  .badge-count{
+    font-size:11px;background:var(--blue-light);color:var(--blue-accent-dark);
+    border-radius:20px;padding:2px 10px;font-weight:600;border:1px solid var(--blue-border);
+  }
+  .empty-hint{color:var(--muted);font-size:13px;padding:10px 4px;}
+
+  /* Overlay panel */
+  .overlay{
+    position:fixed;inset:0;background:rgba(20,30,50,0.35);
+    display:none;align-items:stretch;justify-content:flex-end;z-index:50;
+  }
+  .overlay.open{display:flex;}
+  .panel{
+    width:min(560px,100%);background:#fff;height:100%;overflow-y:auto;
+    box-shadow:-14px 0 40px rgba(20,30,50,0.15);
+    padding:24px;animation:slideIn .25s ease;
+  }
+  @keyframes slideIn{from{transform:translateX(30px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+  .panel-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+  .panel-title{font-size:19px;font-weight:700;}
+  .panel-sub{font-size:12.5px;color:var(--muted);margin-top:3px;}
+  .close-x{background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;line-height:1;}
+
+  .link-box{
+    display:flex;gap:8px;margin:16px 0 20px;background:var(--blue-light);
+    border:1px solid var(--blue-border);border-radius:12px;padding:10px 12px;align-items:center;
+  }
+  .link-box input{border:none;background:transparent;font-size:12.5px;color:var(--blue-accent-dark);padding:0;}
+
+  .q-block{margin-bottom:20px;}
+  .q-title{font-size:13.5px;font-weight:700;margin-bottom:10px;color:var(--text);}
+  .answer-card{
+    background:#fbfcfe;border:1px solid var(--blue-border);border-radius:12px;
+    padding:12px 14px;margin-bottom:10px;
+  }
+  .answer-text{font-size:13.5px;line-height:1.8;white-space:pre-wrap;}
+  .answer-time{font-size:11px;color:var(--muted);margin-top:8px;}
+  .tag-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .tag-chip{
+    font-size:11px;padding:3px 11px;border-radius:20px;cursor:pointer;
+    border:1px solid var(--blue-border);background:#fff;color:var(--muted);font-weight:600;
+    transition:.15s;
+  }
+  .tag-chip.active{color:#fff;border-color:transparent;}
+
+  /* Settings modal */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(20,30,50,0.35);
+    display:none;align-items:center;justify-content:center;z-index:60;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);
+    width:min(420px,92vw);padding:22px;max-height:85vh;overflow-y:auto;
+  }
+  .modal h2{font-size:16px;margin-bottom:16px;}
+  .tag-edit-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .swatch{width:22px;height:22px;border-radius:7px;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);}
+  .swatch-picker{display:flex;gap:7px;margin:10px 0 14px;flex-wrap:wrap;}
+  .swatch-opt{width:26px;height:26px;border-radius:8px;cursor:pointer;border:2px solid transparent;}
+  .swatch-opt.sel{border-color:var(--text);}
+
+  .link-copied{color:#1f9d55;font-size:11.5px;font-weight:600;}
+</style>
+</head>
+<body dir="rtl">
+
+<header>
+  <h1>لوحة التحكم</h1>
+  <button class="icon-btn" id="openSettings">⚙️ الإعدادات — الأوسمة</button>
+</header>
+
+<main>
+  <div class="card">
+    <h2>إضافة موظفة</h2>
+    <div class="form-grid">
+      <input id="newName" placeholder="اسم الموظفة">
+      <input id="newBranch" placeholder="الفرع" list="branchList">
+      <datalist id="branchList"></datalist>
+      <input id="newTitle" placeholder="المسمى الوظيفي">
+      <button class="btn" id="addEmpBtn">إضافة</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>الموظفات حسب الفرع</h2>
+    <div id="branchesWrap"><div class="empty-hint">لا يوجد موظفات بعد.</div></div>
+  </div>
+</main>
+
+<!-- Employee detail panel -->
+<div class="overlay" id="empOverlay">
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title" id="pName">—</div>
+        <div class="panel-sub" id="pMeta">—</div>
+      </div>
+      <button class="close-x" id="closePanel">✕</button>
+    </div>
+
+    <div class="link-box">
+      <input id="linkInput" readonly>
+      <button class="btn small" id="copyLinkBtn">نسخ الرابط</button>
+    </div>
+    <div id="copiedMsg" class="link-copied" style="display:none;margin-top:-12px;margin-bottom:14px;">تم نسخ الرابط ✓</div>
+
+    <div id="answersWrap"></div>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div class="modal-overlay" id="settingsOverlay">
+  <div class="modal">
+    <h2>إدارة الأوسمة</h2>
+    <div id="tagList"></div>
+    <div style="margin-top:14px;">
+      <input id="newTagName" placeholder="اسم الوسم الجديد" style="margin-bottom:10px;">
+      <div class="swatch-picker" id="swatchPicker"></div>
+      <button class="btn" id="addTagBtn" style="width:100%;">إضافة وسم</button>
+    </div>
+    <div style="text-align:left;margin-top:16px;">
+      <button class="btn ghost small" id="closeSettings">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, doc, getDoc, updateDoc, deleteDoc,
+  onSnapshot, query, where, orderBy, serverTimestamp, arrayUnion, arrayRemove
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD6RHtfm6OFMF2DLnICNRdPdzZbHtIDGW8",
+  authDomain: "ali2-6ae8d.firebaseapp.com",
+  projectId: "ali2-6ae8d",
+  storageBucket: "ali2-6ae8d.firebasestorage.app",
+  messagingSenderId: "336998535201",
+  appId: "1:336998535201:web:6155c74c7357f743531360"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const SWATCHES = ["#2f6fed","#e74c3c","#f39c12","#27ae60","#8e44ad","#16a085","#d35400","#7f8c8d"];
+let selectedSwatch = SWATCHES[0];
+
+let employees = [];
+let tags = [];
+let currentEmpId = null;
+let currentEmpAnswersUnsub = null;
+
+const branchesWrap = document.getElementById('branchesWrap');
+const branchList = document.getElementById('branchList');
+
+// ---------- Employees ----------
+onSnapshot(query(collection(db,'employees'), orderBy('createdAt','asc')), (snap)=>{
+  employees = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  renderEmployees();
+});
+
+document.getElementById('addEmpBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('newName').value.trim();
+  const branch = document.getElementById('newBranch').value.trim();
+  const jobTitle = document.getElementById('newTitle').value.trim();
+  if(!name || !branch || !jobTitle){ alert('يرجى تعبئة جميع الحقول'); return; }
+  await addDoc(collection(db,'employees'), { name, branch, jobTitle, createdAt: serverTimestamp() });
+  document.getElementById('newName').value='';
+  document.getElementById('newBranch').value='';
+  document.getElementById('newTitle').value='';
+});
+
+function renderEmployees(){
+  if(employees.length===0){
+    branchesWrap.innerHTML = '<div class="empty-hint">لا يوجد موظفات بعد.</div>';
+    return;
+  }
+  const branches = {};
+  employees.forEach(e=>{
+    branches[e.branch] = branches[e.branch] || {};
+    branches[e.branch][e.jobTitle] = branches[e.branch][e.jobTitle] || [];
+    branches[e.branch][e.jobTitle].push(e);
+  });
+
+  branchList.innerHTML = Object.keys(branches).map(b=>`<option value="${escapeHtml(b)}">`).join('');
+
+  branchesWrap.innerHTML = Object.keys(branches).sort().map(branchName=>{
+    const jobs = branches[branchName];
+    const total = Object.values(jobs).reduce((a,arr)=>a+arr.length,0);
+    const jobsHtml = Object.keys(jobs).sort().map(jobTitle=>{
+      const rows = jobs[jobTitle].map(emp=>`
+        <div class="emp-row" data-id="${emp.id}">
+          <div>
+            <div class="emp-name">${escapeHtml(emp.name)}</div>
+            <div class="emp-meta">${escapeHtml(jobTitle)}</div>
+          </div>
+          <div class="emp-actions">
+            <span class="badge-count" data-count-for="${emp.id}">…</span>
+          </div>
+        </div>`).join('');
+      return `<div class="job-group"><div class="job-label">${escapeHtml(jobTitle)}</div>${rows}</div>`;
+    }).join('');
+    return `<div class="branch-block">
+      <div class="branch-title">${escapeHtml(branchName)} <span class="count">${total}</span></div>
+      ${jobsHtml}
+    </div>`;
+  }).join('');
+
+  branchesWrap.querySelectorAll('.emp-row').forEach(row=>{
+    row.addEventListener('click', ()=> openEmployee(row.dataset.id));
+  });
+
+  // response counts per employee (lightweight live badges)
+  employees.forEach(emp=>{
+    onSnapshot(query(collection(db,'responses'), where('employeeId','==',emp.id)), (snap)=>{
+      const el = branchesWrap.querySelector(`[data-count-for="${emp.id}"]`);
+      if(el) el.textContent = snap.size + ' رد';
+    });
+  });
+}
+
+// ---------- Tags ----------
+onSnapshot(query(collection(db,'tags'), orderBy('createdAt','asc')), (snap)=>{
+  tags = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  renderTagSettings();
+  if(currentEmpId) renderAnswersForCurrentEmp();
+});
+
+function renderTagSettings(){
+  const listEl = document.getElementById('tagList');
+  listEl.innerHTML = tags.length ? tags.map(t=>`
+    <div class="tag-edit-row">
+      <span class="swatch" style="background:${t.color}"></span>
+      <span style="flex:1;font-size:13.5px;">${escapeHtml(t.name)}</span>
+      <button class="btn danger small" data-del-tag="${t.id}">حذف</button>
+    </div>`).join('') : '<div class="empty-hint">لا يوجد أوسمة بعد.</div>';
+
+  listEl.querySelectorAll('[data-del-tag]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(confirm('حذف هذا الوسم؟')) await deleteDoc(doc(db,'tags',btn.dataset.delTag));
+    });
+  });
+}
+
+const swatchPicker = document.getElementById('swatchPicker');
+swatchPicker.innerHTML = SWATCHES.map(c=>`<div class="swatch-opt" style="background:${c}" data-c="${c}"></div>`).join('');
+function refreshSwatchSel(){
+  swatchPicker.querySelectorAll('.swatch-opt').forEach(el=>{
+    el.classList.toggle('sel', el.dataset.c===selectedSwatch);
+  });
+}
+refreshSwatchSel();
+swatchPicker.addEventListener('click', (e)=>{
+  const opt = e.target.closest('.swatch-opt');
+  if(!opt) return;
+  selectedSwatch = opt.dataset.c;
+  refreshSwatchSel();
+});
+
+document.getElementById('addTagBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('newTagName').value.trim();
+  if(!name) return;
+  await addDoc(collection(db,'tags'), { name, color: selectedSwatch, createdAt: serverTimestamp() });
+  document.getElementById('newTagName').value='';
+});
+
+document.getElementById('openSettings').addEventListener('click', ()=> document.getElementById('settingsOverlay').classList.add('open'));
+document.getElementById('closeSettings').addEventListener('click', ()=> document.getElementById('settingsOverlay').classList.remove('open'));
+
+// ---------- Employee detail panel ----------
+const QUESTIONS = [
+  "ما هي أكثر الجوانب التي تشعرين بالرضا عنها في بيئة العمل؟",
+  "هل تواجهين أي تحديات أو صعوبات في عملك؟ صفيها بالتفصيل.",
+  "ما هو تقييمك للتواصل مع الإدارة والمشرفين؟",
+  "هل لديك مقترحات لتحسين بيئة العمل أو الإجراءات؟",
+  "أي ملاحظات إضافية ترغبين بمشاركتها؟"
+];
+
+async function openEmployee(empId){
+  currentEmpId = empId;
+  const emp = employees.find(e=>e.id===empId);
+  if(!emp) return;
+  document.getElementById('pName').textContent = emp.name;
+  document.getElementById('pMeta').textContent = `${emp.branch} · ${emp.jobTitle}`;
+  const link = new URL('survey.html', window.location.href);
+  link.searchParams.set('emp', empId);
+  document.getElementById('linkInput').value = link.toString();
+  document.getElementById('copiedMsg').style.display='none';
+  document.getElementById('empOverlay').classList.add('open');
+
+  if(currentEmpAnswersUnsub) currentEmpAnswersUnsub();
+  currentEmpAnswersUnsub = onSnapshot(
+    query(collection(db,'responses'), where('employeeId','==',empId), orderBy('createdAt','asc')),
+    (snap)=>{
+      window.__currentAnswers = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      renderAnswersForCurrentEmp();
+    }
+  );
+}
+
+function renderAnswersForCurrentEmp(){
+  const answers = window.__currentAnswers || [];
+  const wrap = document.getElementById('answersWrap');
+  wrap.innerHTML = QUESTIONS.map((q, idx)=>{
+    const entries = answers.filter(a=>a.questionIndex===idx);
+    const entriesHtml = entries.length ? entries.map(a=>{
+      const time = a.createdAt?.toDate ? a.createdAt.toDate().toLocaleString('ar-SA') : '';
+      const chipHtml = tags.map(t=>{
+        const active = (a.tags||[]).includes(t.id);
+        return `<span class="tag-chip ${active?'active':''}" style="${active?`background:${t.color};`:''}" data-resp="${a.id}" data-tag="${t.id}">${escapeHtml(t.name)}</span>`;
+      }).join('');
+      return `<div class="answer-card">
+        <div class="answer-text">${escapeHtml(a.answerText||'')}</div>
+        <div class="answer-time">${time}</div>
+        <div class="tag-row">${chipHtml}</div>
+      </div>`;
+    }).join('') : '<div class="empty-hint">لا يوجد رد بعد على هذا السؤال.</div>';
+    return `<div class="q-block"><div class="q-title">${idx+1}. ${escapeHtml(q)}</div>${entriesHtml}</div>`;
+  }).join('');
+
+  wrap.querySelectorAll('.tag-chip').forEach(chip=>{
+    chip.addEventListener('click', async ()=>{
+      const respId = chip.dataset.resp;
+      const tagId = chip.dataset.tag;
+      const isActive = chip.classList.contains('active');
+      await updateDoc(doc(db,'responses',respId), {
+        tags: isActive ? arrayRemove(tagId) : arrayUnion(tagId)
+      });
+    });
+  });
+}
+
+document.getElementById('closePanel').addEventListener('click', ()=>{
+  document.getElementById('empOverlay').classList.remove('open');
+  currentEmpId = null;
+  if(currentEmpAnswersUnsub){ currentEmpAnswersUnsub(); currentEmpAnswersUnsub=null; }
+});
+
+document.getElementById('copyLinkBtn').addEventListener('click', async ()=>{
+  const input = document.getElementById('linkInput');
+  input.select();
+  try{
+    await navigator.clipboard.writeText(input.value);
+  }catch(e){
+    document.execCommand('copy');
+  }
+  document.getElementById('copiedMsg').style.display='block';
+});
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+</script>
+</body>
+</html>
