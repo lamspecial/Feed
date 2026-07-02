@@ -154,7 +154,8 @@ async function renderStep(){
   card.innerHTML = `
     <div style="text-align:center;margin-bottom:20px">${logoSvg}</div>
     <div class="top-row">
-      <span class="emp-name">${escapeHtml(employee.name)} · ${escapeHtml(employee.branch)}</span>
+      <!-- تم استبدال اسم الموظفة والفرع بعنوان عام بناء على طلبك -->
+      <span class="emp-name">استبيان الموظفين</span>
       <span class="emp-name">${step+1} / ${QUESTIONS.length}</span>
     </div>
     <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
