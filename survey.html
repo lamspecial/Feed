@@ -1,18 +1,103 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>استبيان آراء الموظفين</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الاستبيان</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --success: #27ae60;
+            --bg-color: #f4f7f6;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); padding: 20px; margin: 0; }
+        .survey-container { max-width: 800px; margin: 0 auto; background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        h2 { color: var(--primary); text-align: center; margin-bottom: 30px; }
+        .question-block { margin-bottom: 25px; }
+        .question-text { font-size: 18px; font-weight: bold; margin-bottom: 10px; display: block; color: #34495e; }
+        textarea, select, input { width: 100%; padding: 12px; border: 1px solid #ccd1d9; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
+        textarea { resize: vertical; min-height: 80px; }
+        .btn-submit { background: var(--success); color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 20px; }
+        .btn-submit:hover { opacity: 0.9; }
+        .metadata-section { display: flex; gap: 15px; margin-bottom: 30px; background: #e8f8f5; padding: 15px; border-radius: 8px; border: 1px solid #1abc9c; }
+        .metadata-section > div { flex: 1; }
+    </style>
 </head>
-<body class="page-survey" dir="rtl">
-  <div class="card" id="card">
-    <div class="center-state">
-      <h2>...جاري التحميل</h2>
-    </div>
-  </div>
+<body>
+    <div class="survey-container">
+        <h2>نموذج إدخال البيانات والتغذية الراجعة</h2>
+        
+        <div class="metadata-section">
+            <div>
+                <label class="question-text">اسم الموظفة:</label>
+                <select id="employeeSelect"></select>
+            </div>
+            <div>
+                <label class="question-text">وسم الملاحظة:</label>
+                <select id="badgeSelect">
+                    <option value="اقتراح" style="color:#2980b9;">اقتراح (أزرق)</option>
+                    <option value="شكوى" style="color:#c0392b;">شكوى (أحمر)</option>
+                    <option value="طلب" style="color:#27ae60;">طلب احتياج (أخضر)</option>
+                    <option value="إشادة" style="color:#8e44ad;">إشادة بأداء (بنفسجي)</option>
+                </select>
+            </div>
+        </div>
 
-<script type="module" src="survey.js"></script>
+        <form id="surveyForm">
+            <div id="questionsContainer"></div>
+            <button type="button" class="btn-submit" onclick="submitSurvey()">إرسال التقرير</button>
+        </form>
+    </div>
+
+    <script>
+        const questions = JSON.parse(localStorage.getItem('questions')) || [];
+        const employees = JSON.parse(localStorage.getItem('employees')) || [];
+        let responses = JSON.parse(localStorage.getItem('responses')) || [];
+
+        function init() {
+            // تعبئة قائمة الموظفات
+            const empSelect = document.getElementById('employeeSelect');
+            empSelect.innerHTML = employees.map(emp => `<option value="${emp.name}|${emp.branch}">${emp.name} - ${emp.branch}</option>`).join('');
+
+            // بناء الأسئلة بدون ترقيم أو عبارة السؤال
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = questions.map(q => `
+                <div class="question-block">
+                    <label class="question-text">${q.text}</label>
+                    <textarea data-qid="${q.id}" placeholder="اكتب ردك هنا..."></textarea>
+                </div>
+            `).join('');
+        }
+
+        function submitSurvey() {
+            const empData = document.getElementById('employeeSelect').value;
+            if (!empData) { alert('الرجاء اختيار الموظفة'); return; }
+            
+            const [empName, branch] = empData.split('|');
+            const badge = document.getElementById('badgeSelect').value;
+            
+            const answers = {};
+            document.querySelectorAll('textarea[data-qid]').forEach(ta => {
+                const qText = questions.find(q => q.id == ta.dataset.qid).text;
+                answers[qText] = ta.value;
+            });
+
+            // إضافة الرد الجديد إلى السجلات السابقة (لا يمسح القديم)
+            responses.push({
+                date: new Date().toLocaleString('ar-SA'),
+                empName,
+                branch,
+                badge,
+                answers
+            });
+
+            localStorage.setItem('responses', JSON.stringify(responses));
+            
+            alert('تم الإرسال بنجاح وإضافته إلى لوحة المدير.');
+            document.getElementById('surveyForm').reset();
+        }
+
+        init();
+    </script>
 </body>
 </html>
