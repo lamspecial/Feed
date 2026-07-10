@@ -115,7 +115,7 @@ function renderComments(tagById, empById) {
   const wrap = document.getElementById('commentsWrap');
 
   if (!selectedTagId) {
-    wrap.innerHTML = '<div class="empty-hint">اختاري وسمًا أعلاه لعرض التعليقات المرتبطة به مع اسم الموظفة والفرع.</div>';
+    wrap.innerHTML = '<div class="empty-hint">اختر وسمًا أعلاه لعرض التعليقات المرتبطة به مع اسم الموظفة والفرع.</div>';
     return;
   }
 
