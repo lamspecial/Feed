@@ -105,7 +105,7 @@ function renderBranchSettings() {
     <div class="list-edit-row">
       <span style="flex:1;font-size:14px;font-weight:600;color:var(--text);">${escapeHtml(b.name)}</span>
       <button class="btn danger small" data-del-branch="${b.id}">حذف</button>
-    </div>`).join('') : '<div class="empty-hint">لا يوجد فروع بعد. أضيفي فرعًا ليظهر عند إضافة موظفة.</div>';
+    </div>`).join('') : '<div class="empty-hint">لا يوجد فروع بعد. أضف فرعًا ليظهر عند إضافة موظفة.</div>';
 
   listEl.querySelectorAll('[data-del-branch]').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -144,7 +144,7 @@ function renderQuestionSettings() {
         <button data-move-down="${q.id}" ${idx === questions.length - 1 ? 'disabled' : ''}>▼</button>
       </div>
       <button class="btn danger small" data-del-question="${q.id}">حذف</button>
-    </div>`).join('') : '<div class="empty-hint">لا يوجد أسئلة بعد. أضيفي سؤالًا ليظهر في الاستبيان.</div>';
+    </div>`).join('') : '<div class="empty-hint">لا يوجد أسئلة بعد. أضف سؤالًا ليظهر في الاستبيان.</div>';
 
   listEl.querySelectorAll('[data-edit-question]').forEach(input => {
     input.addEventListener('change', async () => {
@@ -281,7 +281,7 @@ function renderAnswersForCurrentEmp() {
   const wrap = document.getElementById('answersWrap');
 
   if (questions.length === 0) {
-    wrap.innerHTML = '<div class="empty-hint">لا يوجد أسئلة معرّفة بعد. أضيفي أسئلة من الإعدادات.</div>';
+    wrap.innerHTML = '<div class="empty-hint">لا يوجد أسئلة معرّفة بعد. أضف أسئلة من الإعدادات.</div>';
     return;
   }
 
